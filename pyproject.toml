@@ -7,9 +7,9 @@ build-backend = "poetry.core.masonry.api"
 source = "init"
 
 [tool.poetry]
-name = "sherlock-project"
+name = "adminer"
 version = "0.16.2"
-description = "Hunt down social media accounts by username across social networks"
+description = "Adminer: find usernames across online services and profiles"
 license = "MIT"
 authors = [
     "Siddharth Dushantha <siddharth.dushantha@gmail.com>"
@@ -20,8 +20,8 @@ maintainers = [
     "Sondre Karlsen Dyrnes <sondre@villdyr.no>"
 ]
 readme = "docs/pyproject/README.md"
-packages = [ { include = "sherlock_project"} ]
-keywords = [ "osint", "reconnaissance", "information gathering" ]
+packages = [ { include = "sherlock_project" }, { include = "adminer" } ]
+keywords = [ "adminer", "osint", "reconnaissance", "information gathering" ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -35,12 +35,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Security"
 ]
-homepage = "https://sherlockproject.xyz/"
-repository = "https://github.com/sherlock-project/sherlock"
+homepage = "https://adminer.example/"
+repository = "https://github.com/adminer/adminer"
 
 
 [tool.poetry.urls]
-"Bug Tracker" = "https://github.com/sherlock-project/sherlock/issues"
+"Bug Tracker" = "https://github.com/adminer/adminer/issues"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -65,4 +65,5 @@ pytest-xdist = "^3.8.0"
 defusedxml = "^0.7.1"
 
 [tool.poetry.scripts]
+adminer = 'adminer.__main__:main'
 sherlock = 'sherlock_project.sherlock:main'

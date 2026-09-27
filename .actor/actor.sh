@@ -2,10 +2,10 @@
 INPUT=`apify actor:get-input | jq -r .usernames[] | xargs echo`
 echo "INPUT: $INPUT"
 
-sherlock $INPUT
+adminer $INPUT
 
 for username in $INPUT; do
-  # escape the special meaning leading characters 
+  # escape the special meaning leading characters
   # https://github.com/jpmens/jo/blob/master/jo.md#description
   safe_username=$(echo $username | sed 's/^@/\\@/' | sed 's/^:/\\:/' | sed 's/%/\\%/')
   echo "pushing results for username: $username, content:"

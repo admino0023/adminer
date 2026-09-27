@@ -1,10 +1,10 @@
 {
   "actorSpecification": 1,
-  "name": "sherlock",
+  "name": "adminer",
   "version": "0.0",
   "buildTag": "latest",
   "environmentVariables": {},
-  "dockerFile": "./Dockerfile", 
+  "dockerFile": "./Dockerfile",
   "dockerContext": "../",
   "input": "./input_schema.json",
   "storages": {

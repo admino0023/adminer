@@ -1,5 +1,5 @@
 {
-  "title": "Sherlock actor input",
+  "title": "Adminer actor input",
   "description": "This is actor input schema",
   "type": "object",
   "schemaVersion": 1,
