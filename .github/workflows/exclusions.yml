@@ -1,17 +1,20 @@
-name: Exclusions Updater
+name: Update Exclusions
 
 on:
   schedule:
-    #- cron: '0 5 * * 0'  # Runs at 05:00 every Sunday
-    - cron: '0 5 * * *' # Runs at 05:00 every day
+    - cron: "0 5 * * 0"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update-exclusions:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -40,23 +43,6 @@ jobs:
           grep -oP '(?<=test_false_pos\[)[^\]]+(?=\].*result was WAF)' fp_test_results.txt \
             | sort -u > waf_hits.txt
 
-      - name: Detect if exclusions list changed
-        id: detect_changes
-        run: |
-          git fetch origin exclusions || true
-
-          if git show origin/exclusions:false_positive_exclusions.txt >/dev/null 2>&1; then
-            # If the exclusions branch and file exist, compare
-            if git diff --quiet origin/exclusions -- false_positive_exclusions.txt; then
-              echo "exclusions_changed=false" >> "$GITHUB_OUTPUT"
-            else
-              echo "exclusions_changed=true" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            # If the exclusions branch or file do not exist, treat as changed
-            echo "exclusions_changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Quantify and display results
         run: |
           FP_COUNT=$(wc -l < false_positive_exclusions.txt | xargs)
@@ -65,25 +51,27 @@ jobs:
           echo ">>> False positive exclusions:" && cat false_positive_exclusions.txt
           echo ">>> WAF hits:" && cat waf_hits.txt
 
-      - name: Commit and push exclusions list
-        if: steps.detect_changes.outputs.exclusions_changed == 'true'
+      - name: Commit exclusions list to exclusions branch
         run: |
-          git config user.name "Paul Pfeister (automation)"
-          git config user.email "code@pfeister.dev"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          mv false_positive_exclusions.txt false_positive_exclusions.txt.tmp
+          mv false_positive_exclusions.txt "$RUNNER_TEMP/false_positive_exclusions.txt"
 
-          git add -f false_positive_exclusions.txt.tmp # -f required to override .gitignore
-          git stash push -m "stash false positive exclusion list" -- false_positive_exclusions.txt.tmp
+          if git ls-remote --exit-code --heads origin exclusions > /dev/null 2>&1; then
+            git fetch origin exclusions
+            git checkout -B exclusions origin/exclusions
+          else
+            git checkout --orphan exclusions
+            git rm -rf --quiet .
+          fi
 
-          git fetch origin exclusions || true # Allows creation of branch if deleted
-          git checkout -B exclusions origin/exclusions || (git checkout --orphan exclusions && git rm -rf .)
+          mv "$RUNNER_TEMP/false_positive_exclusions.txt" false_positive_exclusions.txt
+          git add -f false_positive_exclusions.txt
 
-          git stash pop || true
-
-          mv false_positive_exclusions.txt.tmp false_positive_exclusions.txt
-
-          git rm -f false_positive_exclusions.txt.tmp || true
-          git add false_positive_exclusions.txt
-          git commit -m "auto: update exclusions list" || echo "No changes to commit"
-          git push origin exclusions
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "auto: update exclusions list"
+            git push origin exclusions
+          fi
